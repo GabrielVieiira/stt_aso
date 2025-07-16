@@ -20,3 +20,8 @@ class Exame:
             )
             exames.append(exame)
         return exames
+    
+    def buscar_frequencia(self, cargo_id: int) -> Optional[int]:
+        query = "SELECT frequencia FROM exames_cargos WHERE exame_id = ? AND cargo_id = ?"
+        response = db.fetch_one(query, (self.id, cargo_id))
+        return response['frequencia'] if response else None

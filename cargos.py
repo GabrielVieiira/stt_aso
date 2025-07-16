@@ -1,4 +1,5 @@
 from database.database_meneger import db, DatabaseManager
+import streamlit as st
 from typing import Optional
 from exame_cargo_dto import ExameCargo
 from exames import Exame
@@ -23,6 +24,7 @@ class Cargo:
         self.risco_ergonomico = risco_ergonomico
         self.acidente = acidente
         self.db = db_manager
+        self.exames_necessarios = self._buscar_exames_necessarios()
 
     def salvar(self)-> None:
         query = """
@@ -36,6 +38,21 @@ class Cargo:
             self.risco_biologico,
             self.risco_ergonomico,
             self.acidente
+        ))
+        
+    def atualizar_riscos(self) -> None:
+        query = """
+            UPDATE cargos
+            SET risco_fisico = ?, risco_quimico = ?, risco_biologico = ?, risco_ergonomico = ?, acidente = ?
+            WHERE id = ?
+        """
+        db.execute_query(query, (
+            self.risco_fisico,
+            self.risco_quimico,
+            self.risco_biologico,
+            self.risco_ergonomico,
+            self.acidente,
+            self.id
         ))
 
     @classmethod
@@ -64,7 +81,7 @@ class Cargo:
             cargos.append(cargo)
         return cargos
     
-    def buscar_exames_necessarios(self) -> list[ExameCargo]:
+    def _buscar_exames_necessarios(self) -> list[ExameCargo]:
         query = """
             SELECT 
                 exames.id,
@@ -87,3 +104,37 @@ class Cargo:
             )
             for exame in exames_necessarios
         ]
+
+    def atualizar_exame_necessario(self, exame_id: int) -> None:
+        necessario = st.session_state.get(f"exame_{self.id}_{exame_id}", "")
+        frequencia = st.session_state.get(f"freq_{self.id}_{exame_id}", "")
+        if not necessario:
+                query = """
+                    DELETE FROM exames_cargos WHERE cargo_id = ? AND exame_id = ?
+                """
+                db.execute_query(query, (self.id, exame_id))
+                st.session_state[f"exame_{self.id}_{exame_id}"] = False
+                st.session_state[f"freq_{self.id}_{exame_id}"] = None
+        else:
+            if frequencia in [6,12]:
+                query = """
+                    INSERT INTO exames_cargos (cargo_id, exame_id, frequencia)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(cargo_id, exame_id) DO UPDATE SET frequencia = ?
+                """
+                db.execute_query(query, (self.id, exame_id, frequencia, frequencia))
+            else:
+                st.error("Frequência inválida. Deve ser 6 ou 12 meses.")
+                st.session_state[f"exame_{self.id}_{exame_id}"] = False
+        
+    def atualizar_frequencia_de_exame(self, exame_id: int) -> None:
+        frequencia = st.session_state.get(f"freq_{self.id}_{exame_id}", "")
+        if frequencia in [6, 12]:
+            query = """
+                UPDATE exames_cargos
+                SET frequencia = ?
+                WHERE cargo_id = ? AND exame_id = ?
+            """
+            db.execute_query(query, (frequencia, self.id, exame_id))
+        else:
+            st.error("Frequência inválida. Deve ser 6 ou 12 meses.")
