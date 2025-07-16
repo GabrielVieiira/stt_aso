@@ -44,5 +44,5 @@ class DatabaseManager:
         with self.connect() as conn:
             cursor = conn.execute(query, params)
             return cursor.fetchone() is not None
-        
+
 db = DatabaseManager()
