@@ -17,16 +17,30 @@ st.title("Gerar Kit")
 with st.form("form_funcionario"):
     nome = st.text_input("Nome do Colaborador")
     cpf = st.text_input("CPF do Colaborador", max_chars=11)
-    data_nascimento = st.date_input("Data de nascimento", value=date(1990, 1, 1), format="DD/MM/YYYY")
+    data_nascimento = st.date_input(
+        "Data de nascimento",
+        value=date(1990, 1, 1),
+        format="DD/MM/YYYY",
+        min_value="1900-01-01",
+        max_value="2999-12-31"
+    )
     sexo = st.selectbox('Selecione o sexo',['MASCULINO', 'FEMININO'])
-    data_admissao = st.date_input("Data de Admissão", value=date.today(), format="DD/MM/YYYY")
+    data_admissao = st.date_input(
+        "Data de Admissão",
+        value=date.today(),
+        format="DD/MM/YYYY",
+        min_value="1900-01-01",
+        max_value="2999-12-31"
+        )
     cargo = st.selectbox("Selecione o Cargo", opcoes_cargo, format_func=lambda x: x.nome if isinstance(x, Cargo) else x)
     empresa = st.selectbox("Selecione a empresa", opcoes_empresa, format_func=lambda x: x.razao_social if isinstance(x, Empresa) else x)
-    tipo_de_exame = st.selectbox('Selecione o tipo de exame',['Admissional', 'Demissional', 'Periodico'])
+    tipo_de_exame = st.selectbox('Selecione o tipo de exame',['Admissional', 'Demissional', 'Periódico', 'Mudança de Risco', 'Retorno ao Trabalho', 'Avaliação Clínica'])
 
     submitted = st.form_submit_button("Gerar kit")
 
 if submitted:
+    st.write(data_nascimento)
+    st.write(data_admissao)
     funcionario = Funcionario(
         nome=nome,
         cpf=cpf,

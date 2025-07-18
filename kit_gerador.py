@@ -157,9 +157,7 @@ class AsoGerador(FPDF):
         self.multi_cell(self.largura, altura, exames_str, 1, 'L')
         self.ln(1)
 
-    def add_final_section(self, funcionario):
-        colaborador_nome = funcionario.nome
-        colaborador_cpf = re.sub(r'(\d{3})(\d{3})(\d{3})(\d{2})', r'\1.\2.\3-\4', funcionario.cpf)
+    def add_parecer(self):
         altura = 4.3
         self.set_font("Verdana", "B", 8)
         self.set_fill_color(237, 237, 237)
@@ -176,22 +174,41 @@ class AsoGerador(FPDF):
         y = self.get_y()
         x = 70
         self.rect(x,y+1,tamanho_quadrado,tamanho_quadrado)
+        self.ln()
+    
+    def add_observacoes(self):
+        altura = 4.3
+        self.set_font("Verdana", "B", 8)
+        self.set_fill_color(237, 237, 237)
+        self.cell(self.largura, altura, "Observações", 1, True, "L", True)
+
+        self.set_font("Verdana", "", 8)
+        self.multi_cell(self.largura, altura, " "*400, 1, 'L')
         self.ln(15)
+    
+    def add_final_section(self, funcionario):
+        colaborador_nome = funcionario.nome
 
-        y = self.get_y() + 3
-        tamanho_linha = 50
-        x = self.get_x()
-        self.line(x, y, x + tamanho_linha, y)
-
-
-        self.cell(0, 10, 'Médico / CRM', 0, 1, 'L')
-        self.ln(10)
-
-        y = self.get_y() + 3
-        x = self.get_x()
-        self.line(x, y, x + tamanho_linha, y)
-        self.cell(0, 10, colaborador_nome, 0, 1, 'L')
-
+        medico_info = [
+            "___________________________",
+            "Médico / CRM",
+            "____/____/________",
+        ]
+        
+        colabrador_info = [
+            "___________________________",
+            f"{colaborador_nome}",
+            f"____/____/________",
+        ]
+        
+        altura = 5
+        
+        for i in range(0, len(medico_info)):
+            posicao_y = self.get_y()
+            posicao_x = self.get_x()+self.largura/2
+            self.multi_cell(self.largura/2, altura, medico_info[i], False, align='L')
+            self.set_xy(posicao_x, posicao_y)
+            self.multi_cell(self.largura/2, altura, colabrador_info[i], False, align='L')
 
     def create_pdf(self, funcionario, tipo_de_exame:str, nome_arquivo:str):
         self.add_page()
@@ -201,6 +218,8 @@ class AsoGerador(FPDF):
         self.add_risks_section(funcionario.cargo)
         self.add_tipo_exame(tipo_de_exame)
         self.add_exam_section(funcionario.cargo.exames_necessarios)
+        self.add_parecer()
+        self.add_observacoes()
         self.add_final_section(funcionario)
         self.output(nome_arquivo)
 
@@ -220,21 +239,22 @@ class FichaClinicaGerador(FPDF):
         self.add_font("Verdana", "I", "fonts/verdanai.ttf", uni=True)
 
     def header(self):
-        altura = 32
-        self.image('logo_teca.png', 10, 20, 33)
-        self.set_font("Verdana", "B", 10)
-        self.cell(self.largura, altura, "FICHA CLÍNICA",1,True,"C")
-        self.ln(1)
+        if self.page_no() == 1:
+            altura = 15
+            self.image('logo_teca.png', 10, 13, 33)
+            self.set_font("Verdana", "B", 10)
+            self.cell(self.largura, altura, "FICHA CLÍNICA",1,True,"C")
+            self.ln(1)
 
     def footer(self):
         self.set_y(-15)
         self.set_font("Verdana", "I", 8)
         self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "C")
 
-    def add_title(self, titulo):
+    def add_title(self, titulo, alinhamento="C"):
         self.set_font("Verdana", "B", 9)
         self.set_fill_color(237, 237, 237)
-        self.cell(self.largura, 6, titulo, 1, ln=True, fill=True)
+        self.cell(self.largura, 6, titulo, 1, ln=True, fill=True, align=alinhamento)
 
     def multiline_box(self, texto, altura=4.5, border=True):
         self.set_font("Verdana", "", 8)
@@ -289,75 +309,98 @@ class FichaClinicaGerador(FPDF):
         self.multiline_box(texto)
 
     def add_ficha_clinica_funcionario(self):
-        self.add_title("Ficha Clínica - Questionário do Funcionário")
+        self.add_title("Questionário do Funcionário")
+        self.ln(2)
 
-        perguntas = [
-            "Tem ou já teve algum tipo de doença / traumatismo? Descreva:",
-            "Já passou por cirurgias? Descreva:",
-            "Faz uso de algum tipo de medicação? Qual?",
-            "Nome da empresa (último emprego):",
-            "Cargo:",
-            "Tempo de serviço:",
-            "Desenvolveu alguma doença ocupacional? Qual?",
-            "Sofreu acidente de trabalho? Descreva:",
-            "Antecedentes Familiares (Hipertensão, Diabetes, etc):",
-            "Causa mortis (pais, irmãos, filhos):",
-            "Você fuma? Quantos por dia?",
-            "Usa bebidas alcoólicas? Frequência:",
-            "Pratica atividade física? Frequência:",
-            "Já recebeu auxílio previdenciário? Duração:"
+        linha = '___________________________________________'
+        perguntas_acientes_pessoais = [
+            f"1. Tem ou já teve algum tipo de doença / traumatismo?  [ ] Sim  [ ] Não \n Descreva:{linha}",
+            f"2. Já passou por cirurgias?  [ ] Sim  [ ] Não \n Descreva:{linha}",
+            f"3. Faz uso de algum tipo de medicação?  [ ] Sim  [ ] Não \n Qual?{linha}",
         ]
+        
+        perguntas_antecedentes_profissionais = [
+            f"4. Nome da empresa (último emprego):{linha}",
+            f"5. Cargo:{linha}",
+            f"6. Tempo de serviço:{linha}",
+            f"7. Desenvolveu alguma doença ocupacional (relacionada ao trabalho)?  [ ] Sim  [ ] Não \n Qual?{linha}",
+            f"8. Sofreu acidente de trabalho?  [ ] Sim  [ ] Não \n Descreva:{linha}",
+        ]
+        
+        perguntas_antecedentes_familiares = [
+            f"9. Antecedentes Familiares (Hipertensão, Diabetes, etc):{linha}",
+            f"10. Causa mortis (pais, irmãos, filhos):{linha}",
+        ]
+        
+        perguntas_habitos = [
+            f"11. Você fuma?  [ ] Sim  [ ] Não [ ] Ex fumante \n Quantos por dia?{linha}",
+            f"12. Usa bebidas alcoólicas?  [ ] Sim  [ ] Não \n Frequência:{linha}",
+            f"13. Pratica atividade física?  [ ] Sim  [ ] Não \n Frequência:{linha}"
+        ]
+        
+        perguntas_inss = [
+            f"14. Já recebeu auxílio previdenciário?  [ ] Sim  [ ] Não \n Duração:{linha}"
+        ]
+        
+        perguntas = perguntas_acientes_pessoais + perguntas_antecedentes_profissionais + perguntas_antecedentes_familiares + perguntas_habitos + perguntas_inss
         self.set_font("Verdana", "", 8)
-        for pergunta in perguntas:
-            self.cell(0, 5, pergunta, ln=True)
-            for _ in range(3):
-                self.cell(0, 5, "_" * 90, ln=True)
-            self.ln(1)
-
+        self.multiline_box("\n".join(perguntas), altura=5)
+        
         self.cell(0, 6, "Declaro que as informações acima são verdadeiras.", ln=True)
         self.cell(0, 8, "Assinatura do(a) Candidato(a): ______________________________", ln=True)
 
     def add_ficha_clinica_medico(self):
-        self.add_title("Ficha Clínica - Médico Examinador")
-
+        self.add_page()
+        self.add_title("Questionário para preenchimento do(a) Médico(a) Examinador(a)")
+        self.ln(2)
+        linha = '___________________________________________'
         perguntas = [
-            "Estado psicológico (Calmo / Agitado / Estressado / Ansioso / Deprimido):",
-            "Possui fobias? Quais:",
-            "Está com a vacinação em dia? Quais vacinas:"
+            f'Estado psicológico: [ ] Calmo [ ] Agitado [ ] Estressado [ ] Ansioso [ ] Deprimido [ ] Outros \n {linha}',
+            f"Possui fobias?  [ ] Sim  [ ] Não \n Quais?{linha}",
+            f"Está com a vacinação em dia? [ ]Sim [ ]Não \n Quais vacinas: [ ] Dupla Adulto [ ] Hepatite B [ ] Influenza [ ] Febre Amarela [ ] Covid [ ] Outros \n {linha}",    
         ]
-        for pergunta in perguntas:
-            self.cell(0, 5, pergunta, ln=True)
-            for _ in range(2):
-                self.cell(0, 5, "_" * 90, ln=True)
-            self.ln(1)
+        self.multiline_box("\n".join(perguntas), altura=5)
 
+        self.add_title("Anamnese / Avaliação Clínica:")
+        
         avaliacoes = [
-            "Cabeça e pescoço", "Pele e mucosas", "Aparelho cardiovascular",
-            "Abdômen", "Aparelho respiratório", "Membros superiores",
-            "Membros inferiores", "Coluna"
+            f"Cabeça e pescoço: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Pele e mucosas: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Aparelho cardiovascular: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Abdômen: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Aparelho respiratório: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Membros superiores: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Membros inferiores: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}",
+            f"Coluna: \n [ ] Normal [ ] Alterado \n Descreva:{linha*3}"
         ]
-        for campo in avaliacoes:
-            self.cell(0, 5, campo + ":", ln=True)
-            for _ in range(2):
-                self.cell(0, 5, "_" * 90, ln=True)
-            self.ln(1)
+        
+        self.set_font("Verdana", "", 8)
+        altura = 5
+
+        for i in range(0, len(avaliacoes), 2):
+            posicao_y = self.get_y()
+            posicao_x = self.get_x()+self.largura/2
+            self.multi_cell(self.largura/2, altura, avaliacoes[i], 1, align='L')
+            if i + 1 < len(avaliacoes):
+                self.set_xy(posicao_x, posicao_y)
+                self.multi_cell(self.largura/2, altura, avaliacoes[i+1], 1, align='L')
 
     def add_conclusao(self):
         self.add_title("Conclusão do Exame")
-        self.cell(0, 6, "Data do Atendimento: ____/____/________", ln=True)
-        self.cell(0, 6, "Parecer: ___________________________", ln=True)
-        self.cell(0, 6, "Observações:", ln=True)
-        for _ in range(3):
-            self.cell(0, 6, "_" * 90, ln=True)
-        self.ln(5)
-        self.cell(0, 6, "Assinatura e carimbo do Médico Examinador: ___________________________", ln=True)
+        linhas = [
+            "Data do Atendimento: ____/____/________",
+            "Parecer: ___________________________",
+            "Observações:______________________________________________________________________________________________________________________",
+             "Assinatura e carimbo do Médico Examinador: ___________________________"
+        ]
+        self.multiline_box("\n".join(linhas), altura=5)
 
     def create_pdf(self, nome_arquivo="aso_ficha_clinica.pdf"):
         self.add_page()
         self.add_dados_funcionario()
         self.add_exames_realizados(self.cargo.exames_necessarios)
         self.add_sinais_vitais()
-        # self.add_ficha_clinica_funcionario()
-        # self.add_ficha_clinica_medico()
-        # self.add_conclusao()
+        self.add_ficha_clinica_funcionario()
+        self.add_ficha_clinica_medico()
+        self.add_conclusao()
         self.output(nome_arquivo)
