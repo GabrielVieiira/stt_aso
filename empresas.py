@@ -1,8 +1,21 @@
-from database.database_meneger import db, DatabaseManager
-from typing import Optional
+from database.database_meneger import db
 
 class Empresa:
-    def __init__(self, id, razao_social, rua, numero, complemento, bairro, municipio, cep, uf, telefone, email, cnpj):
+    def __init__(
+        self,
+        id:int,
+        razao_social:str,
+        rua:str,
+        numero:str,
+        complemento:str,
+        bairro:str,
+        municipio:str,
+        cep:str,
+        uf:str,
+        telefone:str,
+        email:str,
+        cnpj:str
+        ):
         self.id = id
         self.razao_social = razao_social
         self.rua = rua
