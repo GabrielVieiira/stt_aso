@@ -4,6 +4,7 @@ from funcionario import Funcionario
 from cargos import Cargo
 from empresas import Empresa
 from exames import Exame
+from utils import ao_mudar_cargo
 import os
 
 
@@ -34,8 +35,17 @@ with st.container(border=True):
         min_value="1900-01-01",
         max_value="2999-12-31"
         )
-    cargo = st.selectbox("Selecione o Cargo", opcoes_cargo, format_func=lambda x: x.nome if isinstance(x, Cargo) else x)
-    exames_necessarios_ids = {exame_cargo.exame.id for exame_cargo in cargo.exames_necessarios}
+    
+    cargo = st.selectbox(
+        "Selecione o Cargo",
+        opcoes_cargo,
+        format_func=lambda x: x.nome if isinstance(x, Cargo) else x,
+        key="cargo",
+        on_change=ao_mudar_cargo,
+        args=(todos_exames, )
+    )
+    
+    exames_necessarios_ids = st.session_state.get("exames_necessarios_ids", set())
     with st.expander("Exames Necessários", expanded=True):
         exames_selecionados = []
         for exame in todos_exames:
@@ -61,60 +71,63 @@ with st.container(border=True):
     empresa = st.selectbox("Selecione a empresa", opcoes_empresa, format_func=lambda x: x.razao_social if isinstance(x, Empresa) else x)
     tipo_de_exame = st.selectbox('Selecione o tipo de exame',['Admissional', 'Demissional', 'Periódico', 'Mudança de Risco', 'Retorno ao Trabalho', 'Avaliação Clínica'])
 
-    if exames_selecionados:
-        submitted = st.button("Gerar kit")
+
+    submitted = st.button("Gerar kit")
    
-if submitted:
-    funcionario = Funcionario(
-        nome=nome,
-        cpf=cpf,
-        data_nascimento=data_nascimento,
-        data_admissao=data_admissao,
-        cargo=cargo,
-        empresa=empresa,
-        sexo= sexo,
-        exames_selecionados=exames_selecionados
-    )
-
-    nome_arquivo_ficha_clinica, nome_arquivo_aso, nome_arquivo_encaminhamento_exame = funcionario.gerar_kit(tipo_de_exame)
-
-    if nome_arquivo_aso and os.path.exists(nome_arquivo_aso):
-        st.success(f"ASO gerado com sucesso para {funcionario.nome}!")
-        with open(nome_arquivo_aso, "rb") as file:
-            st.download_button(
-                label="📄 Baixar ASO",
-                data=file,
-                file_name=nome_arquivo_aso,
-                mime="application/pdf"
-            )         
-    else:
-        st.error("Houve um erro ao gerar o ASO. Verifique os dados ou tente novamente.")
-
-    if nome_arquivo_ficha_clinica and os.path.exists(nome_arquivo_ficha_clinica):
-        st.success(f"Ficha Clinica gerado com sucesso para {funcionario.nome}!")
-        with open(nome_arquivo_ficha_clinica, "rb") as file:
-            st.download_button(
-                label="📄 Baixar Ficha Clinica",
-                data=file,
-                file_name=nome_arquivo_ficha_clinica,
-                mime="application/pdf"
-            )
-      
-    else:
-        st.error("Houve um erro ao gerar o Ficha Clinica. Verifique os dados ou tente novamente.")
-      
-    if nome_arquivo_encaminhamento_exame and os.path.exists(nome_arquivo_encaminhamento_exame):
-        st.success(f"Encaminhamento de exame gerado com sucesso para {funcionario.nome}!")
-        with open(nome_arquivo_encaminhamento_exame, "rb") as file:
-            st.download_button(
-                label="📄 Baixar Encaminhamento de Exame",
-                data=file,
-                file_name=nome_arquivo_encaminhamento_exame,
-                mime="application/pdf"
+    if submitted:
+        if not exames_selecionados:
+            st.warning("Selecione ao menos um exame para gerar o kit.")
+        else:
+            funcionario = Funcionario(
+                nome=nome,
+                cpf=cpf,
+                data_nascimento=data_nascimento,
+                data_admissao=data_admissao,
+                cargo=cargo,
+                empresa=empresa,
+                sexo=sexo,
+                exames_selecionados=exames_selecionados
             )
 
-        os.remove(nome_arquivo_aso)
-        os.remove(nome_arquivo_ficha_clinica)
-        os.remove(nome_arquivo_encaminhamento_exame)
-    else:
-        st.error("Houve um erro ao gerar o Encaminhamento de exame. Verifique os dados ou tente novamente.")
+            nome_arquivo_ficha_clinica, nome_arquivo_aso, nome_arquivo_encaminhamento_exame = funcionario.gerar_kit(tipo_de_exame)
+
+            if nome_arquivo_aso and os.path.exists(nome_arquivo_aso):
+                st.success(f"ASO gerado com sucesso para {funcionario.nome}!")
+                with open(nome_arquivo_aso, "rb") as file:
+                    st.download_button(
+                        label="📄 Baixar ASO",
+                        data=file,
+                        file_name=nome_arquivo_aso,
+                        mime="application/pdf"
+                    )         
+            else:
+                st.error("Houve um erro ao gerar o ASO. Verifique os dados ou tente novamente.")
+
+            if nome_arquivo_ficha_clinica and os.path.exists(nome_arquivo_ficha_clinica):
+                st.success(f"Ficha Clinica gerado com sucesso para {funcionario.nome}!")
+                with open(nome_arquivo_ficha_clinica, "rb") as file:
+                    st.download_button(
+                        label="📄 Baixar Ficha Clinica",
+                        data=file,
+                        file_name=nome_arquivo_ficha_clinica,
+                        mime="application/pdf"
+                    )
+            
+            else:
+                st.error("Houve um erro ao gerar o Ficha Clinica. Verifique os dados ou tente novamente.")
+            
+            if nome_arquivo_encaminhamento_exame and os.path.exists(nome_arquivo_encaminhamento_exame):
+                st.success(f"Encaminhamento de exame gerado com sucesso para {funcionario.nome}!")
+                with open(nome_arquivo_encaminhamento_exame, "rb") as file:
+                    st.download_button(
+                        label="📄 Baixar Encaminhamento de Exame",
+                        data=file,
+                        file_name=nome_arquivo_encaminhamento_exame,
+                        mime="application/pdf"
+                    )
+
+                os.remove(nome_arquivo_aso)
+                os.remove(nome_arquivo_ficha_clinica)
+                os.remove(nome_arquivo_encaminhamento_exame)
+            else:
+                st.error("Houve um erro ao gerar o Encaminhamento de exame. Verifique os dados ou tente novamente.")

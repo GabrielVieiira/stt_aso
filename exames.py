@@ -1,11 +1,12 @@
-from database.database_meneger import db
+from database.database_meneger import db, DatabaseManager
 from typing import Optional
 
 class Exame:
-    def __init__(self, id: int, nome: str, precisa_de_pedido: bool):
+    def __init__(self, nome: str, precisa_de_pedido: bool, id: Optional[int]=None, db_manager:DatabaseManager=db):
         self.id = id
         self.nome = nome
         self.precisa_de_pedido = bool(precisa_de_pedido)
+        self.db = db_manager
 
     @classmethod
     def listar_todos(cls):
@@ -25,3 +26,8 @@ class Exame:
         query = "SELECT frequencia FROM exames_cargos WHERE exame_id = ? AND cargo_id = ?"
         response = db.fetch_one(query, (self.id, cargo_id))
         return response['frequencia'] if response else None
+    
+    def salvar(self):
+        if self.id is None:
+            query = "INSERT INTO exames (nome, precisa_de_pedido) VALUES (?, ?)"
+            db.execute_query(query, (self.nome, self.precisa_de_pedido))

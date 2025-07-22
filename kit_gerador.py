@@ -145,9 +145,8 @@ class AsoGerador(FPDF):
         self.add_title('Avaliação Clínica e Exames Realizados', 'L')
         
         cabecalho = {
-            'DATA':0.25,
-            'EXAME':0.25,
-            'OBSERVAÇÃO':0.5
+            'DATA':0.5,
+            'EXAME':0.5,
         }
         
         self.set_font("Verdana", "B", 8)
@@ -170,9 +169,8 @@ class AsoGerador(FPDF):
                 data_str = data.strftime("%d/%m/%Y")
             else:
                 data_str = ""
-            self.cell(self.largura * 0.25, altura, data_str, 1)
-            self.cell(self.largura * 0.25, altura, exame.nome, 1)
-            self.cell(self.largura * 0.5, altura, '', 1)
+            self.cell(self.largura * 0.5, altura, data_str, 1)
+            self.cell(self.largura * 0.5, altura, exame.nome, 1)
             self.ln()
 
 
@@ -485,10 +483,10 @@ class EcaminhamentoExameGerador(FPDF):
     
     def add_tabela_informacoes_atendimento(self):
         self.add_title("Informações de Atendimento do Prestador")
-        self.set_font("Verdana", "", 8)
+        self.set_font("Verdana", "B", 8)
 
-        self.cell(self.largura/3, 4, "Tipo de Atendimento", 1, 0,)
-        self.cell(self.largura/3, 4, "Faixa de Horário de Atendimento", 1, 0)
+        self.cell(self.largura/3, 4, "Tipo de atendimento", 1, 0,)
+        self.cell(self.largura/3, 4, "Faixa de horário de atendimento", 1, 0)
         self.cell(self.largura/3, 4, "Comentários", 1, 0)
         self.ln()
 
@@ -503,7 +501,7 @@ class EcaminhamentoExameGerador(FPDF):
         self.add_title("Exames")
         
         cabecalho = [
-            "Exame", "Recomendações", "Data", "Hora"
+            "Exame", "Data", "Hora"
         ]
         
         tamanho_coluna = self.largura / len(cabecalho)
@@ -517,15 +515,16 @@ class EcaminhamentoExameGerador(FPDF):
         
     def add_exames(self, tamanho_colunas: float):
         self.set_font("Verdana", "", 8)
-        exames = self.funcionario.cargo.exames_necessarios
-        for exame in exames:
-            nome = exame.exame.nome
-            recomendacoes = ""
-            data = "____/____/________"
+        for exame in self.funcionario.exames_selecionados:
+            nome = exame["exame"].nome
+            data = exame.get("data_realizacao")
+            if data:
+                data_str = data.strftime("%d/%m/%Y")
+            else:
+                data_str = ""
             hora = "____:____"
             self.cell(tamanho_colunas, 6, nome, 1)
-            self.cell(tamanho_colunas, 6, recomendacoes, 1)
-            self.cell(tamanho_colunas, 6, data, 1)
+            self.cell(tamanho_colunas, 6, data_str, 1)
             self.cell(tamanho_colunas, 6, hora, 1)
             self.ln()
         self.ln(15)
