@@ -4,8 +4,7 @@ from funcionario import Funcionario
 from cargos import Cargo
 from empresas import Empresa
 from exames import Exame
-from utils import ao_mudar_cargo
-import os
+from utils import ao_mudar_cargo, cpf_validate
 
 
 st.set_page_config(page_title='Home', page_icon= 'favicon.ico', layout='wide')
@@ -28,13 +27,13 @@ with st.container(border=True):
         max_value="2999-12-31"
     )
     sexo = st.selectbox('Selecione o sexo',['MASCULINO', 'FEMININO'])
-    data_admissao = st.date_input(
-        "Data de Admissão",
-        value=date.today(),
-        format="DD/MM/YYYY",
-        min_value="1900-01-01",
-        max_value="2999-12-31"
-        )
+    # data_admissao = st.date_input(
+    #     "Data de Admissão",
+    #     value=date.today(),
+    #     format="DD/MM/YYYY",
+    #     min_value="1900-01-01",
+    #     max_value="2999-12-31"
+    #     )
     
     cargo = st.selectbox(
         "Selecione o Cargo",
@@ -82,26 +81,21 @@ with st.container(border=True):
                 nome=nome,
                 cpf=cpf,
                 data_nascimento=data_nascimento,
-                data_admissao=data_admissao,
+                # data_admissao=data_admissao,
                 cargo=cargo,
                 empresa=empresa,
                 sexo=sexo,
                 exames_selecionados=exames_selecionados
             )
 
-            nome_arquivo_zip = funcionario.gerar_kit(tipo_de_exame)
+            zip_bytes = funcionario.gerar_kit(tipo_de_exame)
 
-            if nome_arquivo_zip and os.path.exists(nome_arquivo_zip):
-                st.success(f"Kit gerado com sucesso para {funcionario.nome}!")
-                with open(nome_arquivo_zip, "rb") as file:
-                    st.download_button(
-                        label="📦 Baixar Kit Completo",
-                        data=file,
-                        file_name=nome_arquivo_zip,
-                        mime="application/zip"
-                    )
+            nome_zip = f"kit_{funcionario.nome.replace(' ', '_')}_{funcionario.cpf[-4:]}.zip"
 
-                # Remove o arquivo ZIP após o download
-                os.remove(nome_arquivo_zip)
-            else:
-                st.error("Houve um erro ao gerar o Kit. Verifique os dados ou tente novamente.")
+            st.download_button(
+                label="Baixar Kit de Documentos",
+                data=zip_bytes,
+                file_name=nome_zip,
+                mime="application/zip"
+            )
+

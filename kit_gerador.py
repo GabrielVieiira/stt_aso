@@ -27,10 +27,10 @@ class AsoGerador(FPDF):
         self.set_font("Verdana", "I", 8)
         self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "C")
         
-    def add_title(self, titulo, alinhamento="C"):
+    def add_title(self, titulo:str, alinhamento:str="C", altura:float=6):
         self.set_font("Verdana", "B", 9)
         self.set_fill_color(237, 237, 237)
-        self.multi_cell(self.largura, 6, titulo, border=1, align=alinhamento, fill=True)
+        self.multi_cell(self.largura, altura, titulo, border=1, align=alinhamento, fill=True)
 
     def multiline_box(self, texto, altura=4.5, border=True):
         self.set_font("Verdana", "", 8)
@@ -135,7 +135,7 @@ class AsoGerador(FPDF):
 
     def add_tipo_exame(self,):
         altura = 4.3
-        self.add_title("EM CUMPRIMENTO ÀS PORTARIAS NºS 3214/78, 3164/82, 12/83, 24/94 E 08/96 NR7 DO MINISTÉRIO DO TRABALHO E EMPREGO PARA FINS DE EXAME:", 'L')
+        self.add_title("EM CUMPRIMENTO ÀS PORTARIAS NºS 3214/78, 3164/82, 12/83, 24/94 E 08/96 NR7 DO MINISTÉRIO DO TRABALHO E EMPREGO PARA FINS DE EXAME:", 'L', altura)
         self.set_font("Verdana", "", 8)
 
         self.cell(self.largura, altura, f"{self.tipo_de_exame}", 1, True, "L")
@@ -192,13 +192,13 @@ class AsoGerador(FPDF):
         self.rect(x,y+1,tamanho_quadrado,tamanho_quadrado)
         self.ln()
     
-    def add_observacoes(self):
-        altura = 4.3
-        self.add_title("Observações", 'L')
+    # def add_observacoes(self):
+    #     altura = 4.3
+    #     self.add_title("Observações", 'L')
 
-        self.set_font("Verdana", "", 8)
-        self.multi_cell(self.largura, altura, " "*400, 1, 'L')
-        self.ln(15)
+    #     self.set_font("Verdana", "", 8)
+    #     self.multi_cell(self.largura, altura, " "*400, 1, 'L')
+    #     self.ln(15)
     
     def add_final_section(self):
         colaborador_nome = self.funcionario.nome
@@ -224,7 +224,7 @@ class AsoGerador(FPDF):
             self.set_xy(posicao_x, posicao_y)
             self.multi_cell(self.largura/2, altura, colabrador_info[i], False, align='L')
 
-    def create_pdf(self,nome_arquivo:str):
+    def create_pdf(self) -> str:
         self.add_page()
         self.add_company_section()
         self.add_employee_section()
@@ -233,9 +233,9 @@ class AsoGerador(FPDF):
         self.add_tipo_exame()
         self.add_exam_section()
         self.add_parecer()
-        self.add_observacoes()
+        # self.add_observacoes()
         self.add_final_section()
-        self.output(nome_arquivo)
+        return self.output(dest='S')
 
 
 class FichaClinicaGerador(FPDF):
@@ -282,7 +282,7 @@ class FichaClinicaGerador(FPDF):
         idade = self.funcionario.idade
         sexo = self.funcionario.sexo
         cargo = self.cargo.nome
-        admissao = self.funcionario.data_admissao.strftime("%d/%m/%Y")
+        # admissao = self.funcionario.data_admissao.strftime("%d/%m/%Y")
         tipo_exame = self.tipo_exame
         data_ficha = datetime.today().strftime("%d/%m/%Y")
 
@@ -290,7 +290,7 @@ class FichaClinicaGerador(FPDF):
             f"Nome: {nome}      CPF: {cpf_formatado}      Tipo de exame: {tipo_exame} \n"
             f"Sexo: {sexo}  Idade: {idade}  Nascimento: {nascimento}\n"
             f"Cargo: {cargo}\n"
-            f"Admissão: {admissao}   Tipo de Exame: {tipo_exame}   Data Ficha: {data_ficha}\n"
+            f"Tipo de Exame: {tipo_exame}   Data Ficha: {data_ficha}\n"
             f"Empresa: {self.empresa.razao_social}\n"
             f"CNPJ: {self.empresa.cnpj}\n"
             f"Unidade: {self.empresa.razao_social}\n"
@@ -412,7 +412,7 @@ class FichaClinicaGerador(FPDF):
         ]
         self.multiline_box("\n".join(linhas), altura=5)
 
-    def create_pdf(self, nome_arquivo="aso_ficha_clinica.pdf"):
+    def create_pdf(self) -> str:
         self.add_page()
         self.add_dados_funcionario()
         self.add_exames_realizados(self.cargo.exames_necessarios)
@@ -420,7 +420,7 @@ class FichaClinicaGerador(FPDF):
         self.add_ficha_clinica_funcionario()
         self.add_ficha_clinica_medico()
         self.add_conclusao()
-        self.output(nome_arquivo)
+        return self.output(dest='S')
 
 
 class EcaminhamentoExameGerador(FPDF):
@@ -466,7 +466,7 @@ class EcaminhamentoExameGerador(FPDF):
         idade = self.funcionario.idade
         sexo = self.funcionario.sexo
         cargo = self.funcionario.cargo.nome
-        admissao = self.funcionario.data_admissao.strftime("%d/%m/%Y")
+        # admissao = self.funcionario.data_admissao.strftime("%d/%m/%Y")
         tipo_exame = self.tipo_exame
         data_ficha = datetime.today().strftime("%d/%m/%Y")
 
@@ -474,7 +474,7 @@ class EcaminhamentoExameGerador(FPDF):
             f"Nome: {nome}      CPF: {cpf_formatado}      Tipo de exame: {tipo_exame} \n"
             f"Sexo: {sexo}  Idade: {idade}  Nascimento: {nascimento}\n"
             f"Cargo: {cargo}\n"
-            f"Admissão: {admissao}   Tipo de Exame: {tipo_exame}   Data Ficha: {data_ficha}\n"
+            f"Tipo de Exame: {tipo_exame}   Data Ficha: {data_ficha}\n"
             f"Empresa: {self.empresa.razao_social}\n"
             f"CNPJ: {self.empresa.cnpj}\n"
             f"Unidade: {self.empresa.razao_social}\n"
@@ -553,7 +553,7 @@ class EcaminhamentoExameGerador(FPDF):
             self.set_xy(posicao_x, posicao_y)
             self.multi_cell(self.largura/2, altura, colabrador_info[i], False, align='L')
     
-    def create_pdf(self, nome_arquivo="encaminhamento_exame.pdf"):
+    def create_pdf(self) -> str:
         self.add_page()
         self.add_dados_funcionario()
         self.add_tabela_informacoes_atendimento()
@@ -561,4 +561,4 @@ class EcaminhamentoExameGerador(FPDF):
         tamanho_colunas = self.add_tabela_de_exames()
         self.add_exames(tamanho_colunas)
         self.add_final_section()
-        self.output(nome_arquivo)
+        return self.output(dest='S')
