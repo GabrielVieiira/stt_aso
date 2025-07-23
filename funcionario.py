@@ -2,6 +2,8 @@ from datetime import datetime, date
 from cargos import Cargo
 from empresas import Empresa
 from kit_gerador import AsoGerador, FichaClinicaGerador, EcaminhamentoExameGerador
+import zipfile
+import os
 
 class Funcionario:
     def __init__(
@@ -38,9 +40,21 @@ class Funcionario:
         gerador_de_aso.create_pdf(nome_arquivo_aso)
         gerador_de_ficha_clinica.create_pdf(nome_arquivo_ficha_clinica)
         gerador_de_encaminhamento_de_exame.create_pdf(nome_arquivo_encaminhamento_exame)
+        
+        nome_arquivo_zip = f"kit_{self.nome.replace(' ', '_')}_{self.cpf[-4:]}.zip"
+
+        with zipfile.ZipFile(nome_arquivo_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            zipf.write(nome_arquivo_aso, f"ASO_{self.nome.replace(' ', '_')}.pdf")
+            zipf.write(nome_arquivo_ficha_clinica, f"Ficha_Clinica_{self.nome.replace(' ', '_')}.pdf")
+            zipf.write(nome_arquivo_encaminhamento_exame, f"Encaminhamento_Exame_{self.nome.replace(' ', '_')}.pdf")
+
+        # Remove os PDFs individuais (se necessário)
+        os.remove(nome_arquivo_aso)
+        os.remove(nome_arquivo_ficha_clinica)
+        os.remove(nome_arquivo_encaminhamento_exame)
 
 
-        return nome_arquivo_ficha_clinica, nome_arquivo_aso, nome_arquivo_encaminhamento_exame
+        return nome_arquivo_zip
 
     def _calcular_idade(self) -> int:
         hoje = datetime.today().date()

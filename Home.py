@@ -89,45 +89,19 @@ with st.container(border=True):
                 exames_selecionados=exames_selecionados
             )
 
-            nome_arquivo_ficha_clinica, nome_arquivo_aso, nome_arquivo_encaminhamento_exame = funcionario.gerar_kit(tipo_de_exame)
+            nome_arquivo_zip = funcionario.gerar_kit(tipo_de_exame)
 
-            if nome_arquivo_aso and os.path.exists(nome_arquivo_aso):
-                st.success(f"ASO gerado com sucesso para {funcionario.nome}!")
-                with open(nome_arquivo_aso, "rb") as file:
+            if nome_arquivo_zip and os.path.exists(nome_arquivo_zip):
+                st.success(f"Kit gerado com sucesso para {funcionario.nome}!")
+                with open(nome_arquivo_zip, "rb") as file:
                     st.download_button(
-                        label="📄 Baixar ASO",
+                        label="📦 Baixar Kit Completo",
                         data=file,
-                        file_name=nome_arquivo_aso,
-                        mime="application/pdf"
-                    )         
-            else:
-                st.error("Houve um erro ao gerar o ASO. Verifique os dados ou tente novamente.")
-
-            if nome_arquivo_ficha_clinica and os.path.exists(nome_arquivo_ficha_clinica):
-                st.success(f"Ficha Clinica gerado com sucesso para {funcionario.nome}!")
-                with open(nome_arquivo_ficha_clinica, "rb") as file:
-                    st.download_button(
-                        label="📄 Baixar Ficha Clinica",
-                        data=file,
-                        file_name=nome_arquivo_ficha_clinica,
-                        mime="application/pdf"
-                    )
-            
-            else:
-                st.error("Houve um erro ao gerar o Ficha Clinica. Verifique os dados ou tente novamente.")
-            
-            if nome_arquivo_encaminhamento_exame and os.path.exists(nome_arquivo_encaminhamento_exame):
-                st.success(f"Encaminhamento de exame gerado com sucesso para {funcionario.nome}!")
-                with open(nome_arquivo_encaminhamento_exame, "rb") as file:
-                    st.download_button(
-                        label="📄 Baixar Encaminhamento de Exame",
-                        data=file,
-                        file_name=nome_arquivo_encaminhamento_exame,
-                        mime="application/pdf"
+                        file_name=nome_arquivo_zip,
+                        mime="application/zip"
                     )
 
-                os.remove(nome_arquivo_aso)
-                os.remove(nome_arquivo_ficha_clinica)
-                os.remove(nome_arquivo_encaminhamento_exame)
+                # Remove o arquivo ZIP após o download
+                os.remove(nome_arquivo_zip)
             else:
-                st.error("Houve um erro ao gerar o Encaminhamento de exame. Verifique os dados ou tente novamente.")
+                st.error("Houve um erro ao gerar o Kit. Verifique os dados ou tente novamente.")
