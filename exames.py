@@ -31,3 +31,14 @@ class Exame:
         if self.id is None:
             query = "INSERT INTO exames (nome, precisa_de_pedido) VALUES (?, ?)"
             db.execute_query(query, (self.nome, self.precisa_de_pedido))
+            
+    def atualizar(self):
+        if self.id is not None:
+            query = "UPDATE exames SET nome = ?, precisa_de_pedido = ? WHERE id = ?"
+            db.execute_query(query, (self.nome, self.precisa_de_pedido, self.id))
+            
+    def excluir(self):
+        if self.id is not None:
+            query = "DELETE FROM exames WHERE id = ?"
+            db.execute_query(query, (self.id,))
+            self.id = None

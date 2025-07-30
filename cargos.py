@@ -138,3 +138,23 @@ class Cargo:
             db.execute_query(query, (frequencia, self.id, exame_id))
         else:
             st.error("Frequência inválida. Deve ser 6 ou 12 meses.")
+            
+    def excluir(self) -> None:
+        query = "DELETE FROM cargos WHERE id = ?"
+        db.execute_query(query, (self.id,))
+    
+    def atualizar(self) -> None:
+        query = """
+            UPDATE cargos
+            SET nome = ?, risco_fisico = ?, risco_quimico = ?, risco_biologico = ?, risco_ergonomico = ?, acidente = ?
+            WHERE id = ?
+        """
+        db.execute_query(query, (
+            self.nome,
+            self.risco_fisico,
+            self.risco_quimico,
+            self.risco_biologico,
+            self.risco_ergonomico,
+            self.acidente,
+            self.id
+        ))

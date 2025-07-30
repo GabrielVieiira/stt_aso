@@ -48,12 +48,15 @@ class Funcionario:
         buffer_aso.seek(0)
         buffer_ficha.seek(0)
         buffer_encaminhamento.seek(0)
+        
+        nome_formatado = self.nome.replace(" ", "_")
 
         zip_buffer = BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            zipf.writestr(f"ASO_{self.nome.replace(' ', '_')}.pdf", buffer_aso.read())
-            zipf.writestr(f"Ficha_Clinica_{self.nome.replace(' ', '_')}.pdf", buffer_ficha.read())
-            zipf.writestr(f"Encaminhamento_Exame_{self.nome.replace(' ', '_')}.pdf", buffer_encaminhamento.read())
+            for i in range(1, 4):
+                        zipf.writestr(f"ASO_{nome_formatado}_via_{i}.pdf", aso_pdf_str.encode("latin-1"))
+                        zipf.writestr(f"Ficha_Clinica_{nome_formatado}_via_{i}.pdf", ficha_pdf_str.encode("latin-1"))
+                        zipf.writestr(f"Encaminhamento_Exame_{nome_formatado}_via_{i}.pdf", encaminhamento_pdf_str.encode("latin-1"))
 
         zip_buffer.seek(0)
         return zip_buffer

@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Tuple, Type
 
 
 class DatabaseManager:
-    def __init__(self, db_name: str = 'aso_db.db') -> None:
+    def __init__(self, db_name: str = '../aso_db/aso_db.db') -> None:
         self.db_name = db_name
 
     def connect(self) -> sqlite3.Connection:

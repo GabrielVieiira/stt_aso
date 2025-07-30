@@ -17,7 +17,8 @@ class AsoGerador(FPDF):
 
     def header(self):
         altura = 15
-        self.image('logo_teca.png', 10, 13, 33)
+        self.set_y(1)
+        self.image('logo_teca.png', 10, 4, 33)
         self.set_font("Verdana", "B", 10)
         self.cell(self.largura, altura, "ASO - ATESTADO DE SAUDE OCUPACIONAL",1,True,"C")
         self.ln(1)
@@ -27,7 +28,7 @@ class AsoGerador(FPDF):
         self.set_font("Verdana", "I", 8)
         self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "C")
         
-    def add_title(self, titulo:str, alinhamento:str="C", altura:float=6):
+    def add_title(self, titulo:str, alinhamento:str="C", altura:float=4):
         self.set_font("Verdana", "B", 9)
         self.set_fill_color(237, 237, 237)
         self.multi_cell(self.largura, altura, titulo, border=1, align=alinhamento, fill=True)
@@ -144,15 +145,17 @@ class AsoGerador(FPDF):
     def add_tabela_de_exames(self):
         self.add_title('Avaliação Clínica e Exames Realizados', 'L')
         
-        cabecalho = {
-            'DATA':0.5,
-            'EXAME':0.5,
-        }
+        cabecalho = [
+            ("DATA", 0.25),
+            ("EXAME", 0.25),
+            ("DATA", 0.25),
+            ("EXAME", 0.25),
+        ]
         
         self.set_font("Verdana", "B", 8)
-        for coluna in cabecalho:
-            tamanho_coluna = self.largura * cabecalho[coluna]
-            self.cell(tamanho_coluna, 6, coluna, 1, 0, "C")
+        for nome_coluna, proporcao in cabecalho:
+            tamanho_coluna = self.largura * proporcao
+            self.cell(tamanho_coluna, 6, nome_coluna, 1, 0, "C")
             
         self.ln()
     
@@ -161,18 +164,28 @@ class AsoGerador(FPDF):
         self.add_tabela_de_exames()
         self.set_font("Verdana", "", 8)
 
-        for exame_dict in self.funcionario.exames_selecionados:
-            exame = exame_dict["exame"]
-            data = exame_dict.get("data_realizacao")
+        exames = self.funcionario.exames_selecionados
+        largura_coluna = self.largura * 0.25
 
-            if data:
-                data_str = data.strftime("%d/%m/%Y")
+        def render_exame(exame):
+            data = exame.get("data_realizacao")
+            data_str = data.strftime("%d/%m/%Y") if data else ""
+            nome = exame["exame"].nome
+            self.cell(largura_coluna, altura, data_str, 1,align='C')
+            self.cell(largura_coluna, altura, nome, 1,align='C')
+
+        i = 0
+        while i < len(exames):
+            render_exame(exames[i])
+            
+            if i + 1 < len(exames):
+                render_exame(exames[i + 1])
             else:
-                data_str = ""
-            self.cell(self.largura * 0.5, altura, data_str, 1)
-            self.cell(self.largura * 0.5, altura, exame.nome, 1)
-            self.ln()
+                self.cell(largura_coluna, altura, "", 1,align='C')
+                self.cell(largura_coluna, altura, "", 1,align='C')
 
+            self.ln()
+            i += 2
 
         self.ln(1)
 
@@ -190,7 +203,7 @@ class AsoGerador(FPDF):
         y = self.get_y()
         x = 70
         self.rect(x,y+1,tamanho_quadrado,tamanho_quadrado)
-        self.ln()
+        self.ln(8)
     
     # def add_observacoes(self):
     #     altura = 4.3
@@ -205,14 +218,14 @@ class AsoGerador(FPDF):
 
         medico_info = [
             "___________________________",
-            "Médico / CRM",
-            "____/____/________",
+            "      Médico / CRM",
+            "     ____/____/________",
         ]
         
         colabrador_info = [
             "___________________________",
             f"{colaborador_nome}",
-            f"____/____/________",
+            f"   ____/____/________",
         ]
         
         altura = 5
@@ -254,7 +267,8 @@ class FichaClinicaGerador(FPDF):
     def header(self):
         if self.page_no() == 1:
             altura = 15
-            self.image('logo_teca.png', 10, 13, 33)
+            self.set_y(1)
+            self.image('logo_teca.png', 10, 4, 33)
             self.set_font("Verdana", "B", 10)
             self.cell(self.largura, altura, "FICHA CLÍNICA",1,True,"C")
             self.ln(1)
@@ -307,8 +321,8 @@ class FichaClinicaGerador(FPDF):
 
         exames_texto = []
 
-        for exame_cargo in exames:
-            nome = exame_cargo.exame.nome
+        for exame in exames:
+            nome = exame['exame'].nome
             exames_texto.append(nome)
 
         texto =", ".join(exames_texto)
@@ -415,7 +429,7 @@ class FichaClinicaGerador(FPDF):
     def create_pdf(self) -> str:
         self.add_page()
         self.add_dados_funcionario()
-        self.add_exames_realizados(self.cargo.exames_necessarios)
+        self.add_exames_realizados(self.funcionario.exames_selecionados)
         self.add_sinais_vitais()
         self.add_ficha_clinica_funcionario()
         self.add_ficha_clinica_medico()
@@ -438,7 +452,8 @@ class EcaminhamentoExameGerador(FPDF):
     def header(self):
         if self.page_no() == 1:
             altura = 15
-            self.image('logo_teca.png', 10, 13, 33)
+            self.set_y(1)
+            self.image('logo_teca.png', 10, 4, 33)
             self.set_font("Verdana", "B", 10)
             self.cell(self.largura, altura, "Pedido de Exames",1,True,"C")
             self.ln(1)
@@ -497,51 +512,67 @@ class EcaminhamentoExameGerador(FPDF):
         self.cell(self.largura/3, 4, '', 1)
         self.ln(10)
         
-    def add_tabela_de_exames(self) -> float:
-        self.add_title("Exames")
+        
+    def add_tabela_de_exames(self):
+        self.add_title('Avaliação Clínica e Exames Realizados', 'L')
         
         cabecalho = [
-            "Exame", "Data", "Hora"
+            ("DATA", 0.25),
+            ("EXAME", 0.25),
+            ("DATA", 0.25),
+            ("EXAME", 0.25),
         ]
         
-        tamanho_coluna = self.largura / len(cabecalho)
         self.set_font("Verdana", "B", 8)
-        for coluna in cabecalho:
-            self.cell(tamanho_coluna, 6, coluna, 1, 0, "C")
+        for nome_coluna, proporcao in cabecalho:
+            tamanho_coluna = self.largura * proporcao
+            self.cell(tamanho_coluna, 6, nome_coluna, 1, 0, "C")
             
-        self.ln()
+        self.ln()          
         
-        return tamanho_coluna
-        
-    def add_exames(self, tamanho_colunas: float):
-        self.set_font("Verdana", "", 8)
-        for exame in self.funcionario.exames_selecionados:
-            nome = exame["exame"].nome
-            data = exame.get("data_realizacao")
-            if data:
-                data_str = data.strftime("%d/%m/%Y")
-            else:
-                data_str = ""
-            hora = "____:____"
-            self.cell(tamanho_colunas, 6, nome, 1)
-            self.cell(tamanho_colunas, 6, data_str, 1)
-            self.cell(tamanho_colunas, 6, hora, 1)
-            self.ln()
-        self.ln(15)
+    def add_exam_section(self):
+            altura = 5
+            self.add_tabela_de_exames()
+            self.set_font("Verdana", "", 8)
+
+            exames = self.funcionario.exames_selecionados
+            largura_coluna = self.largura * 0.25
+
+            def render_exame(exame):
+                data = exame.get("data_realizacao")
+                data_str = data.strftime("%d/%m/%Y") if data else ""
+                nome = exame["exame"].nome
+                self.cell(largura_coluna, altura, data_str, 1,align='C')
+                self.cell(largura_coluna, altura, nome, 1,align='C')
+
+            i = 0
+            while i < len(exames):
+                render_exame(exames[i])
+                
+                if i + 1 < len(exames):
+                    render_exame(exames[i + 1])
+                else:
+                    self.cell(largura_coluna, altura, "", 1,align='C')
+                    self.cell(largura_coluna, altura, "", 1,align='C')
+
+                self.ln()
+                i += 2
+
+            self.ln(15)
     
     def add_final_section(self):
         colaborador_nome = self.funcionario.nome
 
         medico_info = [
             "___________________________",
-            "Médico / CRM",
-            "____/____/________",
+            "        Médico / CRM",
+            "      ____/____/________",
         ]
         
         colabrador_info = [
             "___________________________",
             f"{colaborador_nome}",
-            f"____/____/________",
+            f"     ____/____/________",
         ]
         
         altura = 5
@@ -558,7 +589,6 @@ class EcaminhamentoExameGerador(FPDF):
         self.add_dados_funcionario()
         self.add_tabela_informacoes_atendimento()
         self.add_informacoes_atendimento()
-        tamanho_colunas = self.add_tabela_de_exames()
-        self.add_exames(tamanho_colunas)
+        self.add_exam_section()
         self.add_final_section()
         return self.output(dest='S')

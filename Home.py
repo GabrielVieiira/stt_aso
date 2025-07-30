@@ -4,7 +4,7 @@ from funcionario import Funcionario
 from cargos import Cargo
 from empresas import Empresa
 from exames import Exame
-from utils import ao_mudar_cargo, cpf_validate
+from utils import ao_mudar_cargo
 
 
 st.set_page_config(page_title='Home', page_icon= 'favicon.ico', layout='wide')
@@ -45,27 +45,58 @@ with st.container(border=True):
     )
     
     exames_necessarios_ids = st.session_state.get("exames_necessarios_ids", set())
+
     with st.expander("Exames Necessários", expanded=True):
         exames_selecionados = []
-        for exame in todos_exames:
-            is_checked = exame.id in exames_necessarios_ids
-            col1, col2 = st.columns([2, 1])
-            selecionado = col1.checkbox(exame.nome, value=is_checked, key=f"check_{exame.id}")
-            if selecionado:
-                data_realizacao = col2.date_input(
-                    label="Data de Realização",
-                    value=None,
-                    format="DD/MM/YYYY",
-                    key=f"data_{exame.id}",
-                    min_value="1900-01-01",
-                    max_value="2999-12-31"
+        col_a, col_b = st.columns(2)
+
+        with col_a:
+            with st.container(border=True):
+                for exame in todos_exames[::2]:
+                    is_checked = exame.id in exames_necessarios_ids
+                    selecionado = st.checkbox(
+                        exame.nome,
+                        value=is_checked,
+                        key=f"check_esq_{exame.id}"
                     )
-                exames_selecionados.append({
-                    "exame": exame,
-                    "data_realizacao": data_realizacao
-                })
-            else:
-                data_realizacao = None
+                    if selecionado:
+                        data_realizacao = st.date_input(
+                            "Data de Realização",
+                            value=None,
+                            format="DD/MM/YYYY",
+                            key=f"data_esq_{exame.id}",
+                            min_value="1900-01-01",
+                            max_value="2999-12-31"
+                        )
+                        exames_selecionados.append({
+                            "exame": exame,
+                            "data_realizacao": data_realizacao
+                        })
+                    st.divider()
+
+        with col_b:
+            with st.container(border=True):
+                for exame in todos_exames[1::2]:
+                    is_checked = exame.id in exames_necessarios_ids
+                    selecionado = st.checkbox(
+                        exame.nome,
+                        value=is_checked,
+                        key=f"check_dir_{exame.id}"
+                    )
+                    if selecionado:
+                        data_realizacao = st.date_input(
+                            "Data de Realização",
+                            value=None,
+                            format="DD/MM/YYYY",
+                            key=f"data_dir_{exame.id}",
+                            min_value="1900-01-01",
+                            max_value="2999-12-31"
+                        )
+                        exames_selecionados.append({
+                            "exame": exame,
+                            "data_realizacao": data_realizacao
+                        })
+                    st.divider()
 
     empresa = st.selectbox("Selecione a empresa", opcoes_empresa, format_func=lambda x: x.razao_social if isinstance(x, Empresa) else x)
     tipo_de_exame = st.selectbox('Selecione o tipo de exame',['Admissional', 'Demissional', 'Periódico', 'Mudança de Risco', 'Retorno ao Trabalho', 'Avaliação Clínica'])
