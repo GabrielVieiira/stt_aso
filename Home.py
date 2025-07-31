@@ -101,10 +101,10 @@ with st.container(border=True):
     empresa = st.selectbox("Selecione a empresa", opcoes_empresa, format_func=lambda x: x.razao_social if isinstance(x, Empresa) else x)
     tipo_de_exame = st.selectbox('Selecione o tipo de exame',['Admissional', 'Demissional', 'Periódico', 'Mudança de Risco', 'Retorno ao Trabalho', 'Avaliação Clínica'])
 
-
     submitted = st.button("Gerar kit")
    
     if submitted:
+        
         if not exames_selecionados:
             st.warning("Selecione ao menos um exame para gerar o kit.")
         else:
@@ -118,7 +118,6 @@ with st.container(border=True):
                 sexo=sexo,
                 exames_selecionados=exames_selecionados
             )
-
             zip_bytes = funcionario.gerar_kit(tipo_de_exame)
 
             nome_zip = f"kit_{funcionario.nome.replace(' ', '_')}_{funcionario.cpf[-4:]}.zip"

@@ -118,15 +118,16 @@ class AsoGerador(FPDF):
 
         altura = 5
         self.add_title('Perigos / Fatores de Risco', 'L')
-
-        riscos_fisicos = self.funcionario.cargo.risco_fisico
+        riscos_fisicos = self.funcionario.cargo.risco_fisico if self.funcionario.cargo.risco_fisico else "N/A"
         riscos_quimicos = self.funcionario.cargo.risco_quimico
+        riscos_biologicos = self.funcionario.cargo.risco_biologico
         riscos_ergonomicos = self.funcionario.cargo.risco_ergonomico
         acidentes = self.funcionario.cargo.acidente
 
         riscos = (
             f"Físicos: {riscos_fisicos}\n"
             f"Químicos: {riscos_quimicos}\n"
+            f"Biológicos: {riscos_biologicos}\n"
             f"Ergonômicos: {riscos_ergonomicos}\n"
             f"Acidentes: {acidentes}"
         )
@@ -238,16 +239,17 @@ class AsoGerador(FPDF):
             self.multi_cell(self.largura/2, altura, colabrador_info[i], False, align='L')
 
     def create_pdf(self) -> str:
-        self.add_page()
-        self.add_company_section()
-        self.add_employee_section()
-        self.add_doctor_section()
-        self.add_risks_section()
-        self.add_tipo_exame()
-        self.add_exam_section()
-        self.add_parecer()
-        # self.add_observacoes()
-        self.add_final_section()
+        for _ in range(3):
+            self.add_page()
+            self.add_company_section()
+            self.add_employee_section()
+            self.add_doctor_section()
+            self.add_risks_section()
+            self.add_tipo_exame()
+            self.add_exam_section()
+            self.add_parecer()
+            # self.add_observacoes()
+            self.add_final_section()
         return self.output(dest='S')
 
 
