@@ -118,14 +118,14 @@ with st.container(border=True):
                 sexo=sexo,
                 exames_selecionados=exames_selecionados
             )
-            zip_bytes = funcionario.gerar_kit(tipo_de_exame)
+            pdf_bytes = funcionario.gerar_kit(tipo_de_exame)
 
-            nome_zip = f"kit_{funcionario.nome.replace(' ', '_')}_{funcionario.cpf[-4:]}.zip"
+            nome_pdf = f"kit_{funcionario.nome.replace(' ', '_')}_{funcionario.cpf[-4:]}.pdf"
 
             st.download_button(
                 label="Baixar Kit de Documentos",
-                data=zip_bytes,
-                file_name=nome_zip,
-                mime="application/zip"
+                data=pdf_bytes,
+                file_name=nome_pdf,
+                mime="application/pdf"
             )
 

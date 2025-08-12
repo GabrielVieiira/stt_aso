@@ -2,7 +2,7 @@ from datetime import datetime, date
 from cargos import Cargo
 from empresas import Empresa
 from kit_gerador import AsoGerador, FichaClinicaGerador, EcaminhamentoExameGerador
-import zipfile
+from fpdf import FPDF
 from io import BytesIO
 
 class Funcionario:
@@ -28,37 +28,21 @@ class Funcionario:
         self.exames_selecionados = exames_selecionados
     
     def gerar_kit(self, tipo_de_exame: str) -> BytesIO:
-        gerador_de_aso = AsoGerador(self, empresa_info=self.empresa, tipo_de_exame=tipo_de_exame)
-        gerador_de_ficha_clinica = FichaClinicaGerador(self, self.empresa, tipo_de_exame, self.cargo)
-        gerador_de_encaminhamento_de_exame = EcaminhamentoExameGerador(self, self.empresa, tipo_de_exame)
-        
-        buffer_aso = BytesIO()
-        buffer_ficha = BytesIO()
-        buffer_encaminhamento = BytesIO()
+        pdf = FPDF()
+        pdf.set_auto_page_break(auto=True, margin=15)
 
-        aso_pdf_str = gerador_de_aso.create_pdf()
-        buffer_aso.write(aso_pdf_str.encode('latin-1'))
+        # Geração das páginas diretamente no mesmo PDF
+        AsoGerador(pdf, self, self.empresa, tipo_de_exame).gerar()
+        FichaClinicaGerador(pdf, self, self.empresa, tipo_de_exame, self.cargo).gerar()
+        EcaminhamentoExameGerador(pdf, self, self.empresa, tipo_de_exame).gerar()
 
-        ficha_pdf_str = gerador_de_ficha_clinica.create_pdf()
-        buffer_ficha.write(ficha_pdf_str.encode('latin-1'))
+        # Geração do PDF em memória
+        pdf_buffer = BytesIO()
+        pdf_output = pdf.output(dest='S').encode('latin1') 
+        pdf_buffer.write(pdf_output)
+        pdf_buffer.seek(0)
 
-        encaminhamento_pdf_str = gerador_de_encaminhamento_de_exame.create_pdf()
-        buffer_encaminhamento.write(encaminhamento_pdf_str.encode('latin-1'))
-
-        buffer_aso.seek(0)
-        buffer_ficha.seek(0)
-        buffer_encaminhamento.seek(0)
-        
-        nome_formatado = self.nome.replace(" ", "_")
-
-        zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
-            zipf.writestr(f"ASO_{nome_formatado}.pdf", aso_pdf_str.encode("latin-1"))
-            zipf.writestr(f"Ficha_Clinica_{nome_formatado}.pdf", ficha_pdf_str.encode("latin-1"))
-            zipf.writestr(f"Encaminhamento_Exame_{nome_formatado}.pdf", encaminhamento_pdf_str.encode("latin-1"))
-
-        zip_buffer.seek(0)
-        return zip_buffer
+        return pdf_buffer
 
     def _calcular_idade(self) -> int:
         hoje = datetime.today().date()
