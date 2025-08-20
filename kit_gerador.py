@@ -165,7 +165,7 @@ class AsoGerador:
         self.add_tabela_de_exames()
         self.pdf.set_font("Verdana", "", 8)
 
-        exames = self.funcionario.exames_selecionados
+        exames = sorted(self.funcionario.exames_selecionados, key=lambda x: x["exame"].nome.lower())
         largura_coluna = self.largura * 0.25
 
         def render_exame(exame):
