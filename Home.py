@@ -4,8 +4,7 @@ from funcionario import Funcionario
 from cargos import Cargo
 from empresas import Empresa
 from exames import Exame
-from utils import ao_mudar_cargo
-
+from utils import ao_mudar_cargo, cpf_validate
 
 st.set_page_config(page_title='Home', page_icon= 'favicon.ico', layout='wide')
 st.logo("logo_teca.png", size='large')
@@ -27,14 +26,7 @@ with st.container(border=True):
         max_value="2999-12-31"
     )
     sexo = st.selectbox('Selecione o sexo',['MASCULINO', 'FEMININO'])
-    # data_admissao = st.date_input(
-    #     "Data de Admissão",
-    #     value=date.today(),
-    #     format="DD/MM/YYYY",
-    #     min_value="1900-01-01",
-    #     max_value="2999-12-31"
-    #     )
-    
+
     cargo = st.selectbox(
         "Selecione o Cargo",
         opcoes_cargo,
@@ -43,7 +35,6 @@ with st.container(border=True):
         on_change=ao_mudar_cargo,
         args=(todos_exames, )
     )
-    
     exames_necessarios_ids = st.session_state.get("exames_necessarios_ids", set())
 
     with st.expander("Exames Necessários", expanded=True):
@@ -102,17 +93,17 @@ with st.container(border=True):
     tipo_de_exame = st.selectbox('Selecione o tipo de exame',['Admissional', 'Demissional', 'Periódico', 'Mudança de Risco', 'Retorno ao Trabalho', 'Avaliação Clínica'])
 
     submitted = st.button("Gerar kit")
-   
+
     if submitted:
-        
         if not exames_selecionados:
             st.warning("Selecione ao menos um exame para gerar o kit.")
+        if not cpf_validate(cpf):
+            st.warning("CPF inválido. Verifique e tente novamente.")
         else:
             funcionario = Funcionario(
                 nome=nome,
                 cpf=cpf,
                 data_nascimento=data_nascimento,
-                # data_admissao=data_admissao,
                 cargo=cargo,
                 empresa=empresa,
                 sexo=sexo,
@@ -128,4 +119,3 @@ with st.container(border=True):
                 file_name=nome_pdf,
                 mime="application/pdf"
             )
-
